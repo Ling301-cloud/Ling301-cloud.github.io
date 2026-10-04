@@ -16,6 +16,13 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 	// 主页
 	links.push(LinkPresets.Home);
 
+	// 我的爱好
+	links.push({
+		name: "我的爱好",
+		url: "/hobbies/",
+		icon: "material-symbols:auto_awesome",
+	});
+
 	// 文章及其子菜单
 	links.push({
 		name: "文章",
@@ -237,7 +244,7 @@ export const LinkPresets: Record<string, NavBarLink> = {
 		pageKey: "sponsor",
 	},
 	About: {
-		name: "关于我",
+		name: "关于本站",
 		url: "/about/",
 		icon: "material-symbols:person",
 	},

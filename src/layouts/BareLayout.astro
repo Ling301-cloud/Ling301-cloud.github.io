@@ -1,0 +1,58 @@
+---
+import Live2DWidget from "@components/features/Live2DWidget.astro";
+import SpineModel from "@components/features/SpineModel.astro";
+import Footer from "@components/layout/Footer.astro";
+import HeaderTopRow from "@components/layout/HeaderTopRow.astro";
+import NavMenuPanel from "@components/layout/NavMenuPanel.astro";
+import FloatingControls from "@/components/controls/FloatingControls.astro";
+import WallpaperSection from "@/components/layout/WallpaperSection.astro";
+import { live2dWidgetConfig, navbarMode, siteConfig } from "@/config";
+import { getBannerVisibilityState } from "@/utils/banner-visibility-utils";
+import { getBackgroundImages, isHomePage } from "@/utils/layout-utils";
+import { resolveNavMenuLinks } from "@/utils/nav-menu-utils";
+import Layout from "./Layout.astro";
+
+interface Props {
+	title?: string;
+	description?: string;
+	lang?: string;
+	heading?: string;
+}
+
+const { title, description, lang, heading } = Astro.props;
+
+const backgroundImages = getBackgroundImages();
+const isHomePageCheck = isHomePage(Astro.url.pathname);
+const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
+const banner = getBannerVisibilityState({
+	isHomePage: isHomePageCheck,
+	isPostPage: false,
+	title,
+	bannerPostMeta: undefined,
+});
+const { hasWallpaper } = banner;
+---
+
+<Layout title={title} description={description} lang={lang} hasWallpaper={hasWallpaper}>
+	<HeaderTopRow navbarMode={navbarMode} navbarWidthFull={navbarWidthFull} />
+	<WallpaperSection state={banner} backgroundImages={backgroundImages} title={title} bannerPostMeta={undefined} />
+
+	<div id="content-panel" class="content-panel absolute w-full z-30 pointer-events-none">
+		<div id="content-panel-inner" class="relative w-full xl:w-[92vw] max-w-(--page-width) mx-auto pointer-events-auto">
+			<main id="swup-container" class="transition-main">
+				<h1 class="sr-only">{heading || title}</h1>
+				<div id="content-wrapper" class="onload-animation transition-leaving">
+					<slot></slot>
+				</div>
+			</main>
+
+			<SpineModel></SpineModel>
+			{live2dWidgetConfig.enable && <Live2DWidget config={live2dWidgetConfig} />}
+
+			<Footer />
+		</div>
+	</div>
+
+	<FloatingControls headings={[]} encrypted={false} />
+	<NavMenuPanel links={resolveNavMenuLinks()} />
+</Layout>

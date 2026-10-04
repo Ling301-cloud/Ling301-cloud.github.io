@@ -1,0 +1,10 @@
+---
+import TarotSpread from "@components/pages/hobbies/TarotSpread.svelte";
+import BareLayout from "@/layouts/BareLayout.astro";
+---
+
+<BareLayout title="我的爱好" description="Linlin 的爱好——塔罗牌小天地">
+	<div class="w-full pt-2 pb-8 md:pt-6">
+		<TarotSpread client:load />
+	</div>
+</BareLayout>

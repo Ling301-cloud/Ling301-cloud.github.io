@@ -1,4 +1,4 @@
-# 关于我 / About Me
+# 关于本站 / About
 
 你好呀，我是 **Linlin**，这片小小天地的主人。
 
@@ -6,7 +6,7 @@
 
 这里会记录一些生活的片段、代码的小小感悟，以及那些不想被时间冲淡的画面。
 
-## 🛠️ 关于本站
+## 🛠️ 技术栈
 
 本站基于 [Astro](https://astro.build) 构建，采用了 [Firefly](https://github.com/CuteLeaf/Firefly) 主题模板。
 
