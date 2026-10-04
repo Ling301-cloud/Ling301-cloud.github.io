@@ -20,7 +20,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 	links.push({
 		name: "我的爱好",
 		url: "/hobbies/",
-		icon: "material-symbols:auto_awesome",
+		icon: "material-symbols:auto-awesome",
 	});
 
 	// 文章及其子菜单
