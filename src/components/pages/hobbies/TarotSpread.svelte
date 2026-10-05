@@ -21,7 +21,7 @@
 	const CARD_TOP = 64;
 	const SEL_LEFT = 40;
 	const SEL_SCALE = 1.18;
-	const SEL_ROT = 30;
+	const SEL_ROT = -30;
 
 	interface Pos {
 		left: number;
@@ -83,7 +83,7 @@
 				rot: 0,
 				scale: 1,
 				opacity: 0,
-				z: i,
+				z: 10 + i,
 			};
 		}
 		phase = "intro";
@@ -344,7 +344,7 @@
 	<!-- 内容面板 -->
 	<div
 		class="tarot-panel"
-		style="opacity:{selectedId ? 1 : 0}; left:{SEL_LEFT + Math.round(cardW * SEL_SCALE) + 52}px; top:{CARD_TOP}px; height:{Math.round(cardH() * SEL_SCALE)}px; right:16px;"
+		style="opacity:{selectedId ? 1 : 0}; pointer-events:{selectedId ? 'auto' : 'none'}; left:{SEL_LEFT + Math.round(cardW * SEL_SCALE) + 52}px; top:{CARD_TOP}px; height:{Math.round(cardH() * SEL_SCALE)}px; right:16px;"
 		onclick={(e) => e.stopPropagation()}
 	>
 		{#if selectedId}
@@ -492,6 +492,7 @@
 	}
 	.tarot-divider {
 		position: absolute;
+		z-index: 60;
 		width: 2px;
 		background: #fff;
 		border-radius: 2px;
@@ -501,6 +502,7 @@
 	}
 	.tarot-panel {
 		position: absolute;
+		z-index: 50;
 		border-radius: 16px;
 		background: rgba(140, 145, 155, 0.5);
 		backdrop-filter: blur(6px);
