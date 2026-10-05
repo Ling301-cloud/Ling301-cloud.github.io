@@ -23,6 +23,12 @@
 	const SEL_SCALE = 1.18;
 	const SEL_ROT = -30;
 
+	// ── 开场动画的缩放大小（想改卡片在各阶段的大小，就改这 4 个数字）──
+	const SCALE_START = 0.4; // ① 渐显开始时：卡片很小
+	const SCALE_FADE = 0.85; // ② 渐显结束 / 停顿中：长得差不多了
+	const SCALE_MOVE = 1.0; // ③ 左移结束时：恢复成正常大小
+	const SCALE_POP = 0.15; // ④ 摊开飞行途中额外放大多少（弹一下的效果）
+
 	interface Pos {
 		left: number;
 		top: number;
@@ -81,7 +87,7 @@
 				left: stackedLeft() + i * 3,
 				top: CARD_TOP + i * 4,
 				rot: 0,
-				scale: 1,
+				scale: SCALE_START,
 				opacity: 0,
 				z: 10 + i,
 			};
@@ -92,7 +98,11 @@
 			300,
 			easeOut,
 			(t) => {
-				for (const c of CARDS) poses[c.id].opacity = t;
+				for (const c of CARDS) {
+					poses[c.id].opacity = t;
+					// 渐显的同时，从小放大到 SCALE_FADE
+					poses[c.id].scale = SCALE_START + (SCALE_FADE - SCALE_START) * t;
+				}
 			},
 			() => {
 				// 停顿 0.2s
@@ -110,6 +120,8 @@
 								poses[CARDS[i].id].left = l + i * 3;
 								poses[CARDS[i].id].top = CARD_TOP - arc + i * 4;
 								poses[CARDS[i].id].rot = Math.sin(Math.PI * t) * -9;
+								// 左移途中，从 SCALE_FADE 放大到正常大小 SCALE_MOVE
+								poses[CARDS[i].id].scale = SCALE_FADE + (SCALE_MOVE - SCALE_FADE) * t;
 							}
 						},
 						() => {
@@ -125,6 +137,8 @@
 										poses[card.id].left = from.left + (to.left - from.left) * t;
 										poses[card.id].top = from.top - arc;
 										poses[card.id].rot = to.rot * t;
+										// 飞行途中先弹大一点（SCALE_POP），再回到正常大小
+										poses[card.id].scale = SCALE_MOVE + Math.sin(Math.PI * t) * SCALE_POP;
 									});
 								}, k * 95);
 							});
