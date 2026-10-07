@@ -17,16 +17,24 @@
 		{ id: "music", name: "音乐", src: "/tarot/music.webp", type: "media" },
 	];
 
-	const ROTS = [-25, -15, -5, 5, 15, 25];
-        const arcTop = (i: number) => {
-                 const t = (i - (CARDS.length - 1) / 2) / ((CARDS.length - 1) / 2);
-    // cos 曲线：中间最高（上移 26px），两端回到 0
-                 return Math.round(Math.cos(t * Math.PI * 0.5) * 20);
-        };
-        const CARD_TOP = 64;
+	// ══════════════════════════════════════════════════════════════
+	// 【蓝菲修改·扇形布局】原来是 ROTS + 手写 arcTop 弧线，改成"真正的扇形"：
+	//   让 6 张牌围绕同一个下方支点排成圆弧（就像手拿扑克牌那样扇开）
+	//     水平位置 left = 容器中心 + 半径 × sin(角度)
+	//     垂直位置 top  = 最高点  + 半径 × (1 - cos(角度))
+	// ══════════════════════════════════════════════════════════════
+	const FAN_SPREAD = 50; // 【蓝菲修改】扇形总张开角度（度）：最左到最右共 50° → 每边 25°
+	const FAN_RADIUS = 520; // 【蓝菲修改】扇形半径（px）：支点到牌中心的距离，越大则弧线越平缓、牌越散
+	const FAN_TOP = 56; // 【蓝菲修改】扇形正中间那张牌距容器顶部的距离（px）
+	const CARD_TOP = 64; // 堆叠 / 左移阶段（开场动画）用的位置
 	const SEL_LEFT = 40;
 	const SEL_SCALE = 1.18;
 	const SEL_ROT = -25;
+
+	// 【蓝菲修改】每张牌在扇形里的角度：6 张牌 → -25, -15, -5, 5, 15, 25
+	const fanAngle = (i: number) => (i - (CARDS.length - 1) / 2) * (FAN_SPREAD / (CARDS.length - 1));
+	// 【蓝菲修改】角度转弧度（Math.sin / Math.cos 只认弧度，不认角度）
+	const fanRad = (i: number) => (fanAngle(i) * Math.PI) / 180;
 
 	// ── 开场动画的缩放大小（想改卡片在各阶段的大小，就改这 4 个数字）──
 	const SCALE_START = 0.4; // ① 渐显开始时：
@@ -59,13 +67,28 @@
 	let contents = $state<Record<string, Content>>({});
 	let videoUrls = $state<Record<string, string>>({});
 
-	const cardH = () => Math.round(cardW * 2.0);
-	const overlap = () => Math.round(cardW * 0.20);
-	const step = () => cardW - overlap();
-	const spreadW = () => cardW + (CARDS.length - 1) * step();
-	const stageH = () => CARD_TOP + cardH() + 80;
-	const spreadLeft = (i: number) => Math.round((stageW - spreadW()) / 2 + i * step());
-	const stackedLeft = () => Math.round((stageW - cardW) / 2);
+		const cardH = () => Math.round(cardW * 2.0);
+	const stackedLeft = () => Math.round((stageW - cardW) / 2); // 堆叠时：水平居中
+
+	// ══════════════════════════════════════════════════════════════
+	// 【蓝菲修改】扇形里每张牌的位置和角度（旧的 overlap/step/spreadW 已删掉）
+	// ══════════════════════════════════════════════════════════════
+	// 【蓝菲修改】半径自适应：屏幕窄时自动变小，保证扇形不会冲出屏幕
+	const fanR = () => {
+		const halfW = (stageW - cardW) / 2 - 4;
+		const maxR = halfW / Math.sin((FAN_SPREAD / 2) * (Math.PI / 180));
+		return Math.max(150, Math.min(FAN_RADIUS, Math.round(maxR)));
+	};
+	// 【蓝菲修改】扇形里最边上的牌比正中间低多少（用来算容器高度）
+	const fanDrop = () => Math.round(fanR() * (1 - Math.cos((FAN_SPREAD / 2) * (Math.PI / 180))));
+	// 【蓝菲修改】第 i 张牌的 left：中间牌居中，两边的牌按 sin(角度) 向左右展开
+	const spreadLeft = (i: number) => Math.round(stageW / 2 - cardW / 2 + fanR() * Math.sin(fanRad(i)));
+	// 【蓝菲修改】第 i 张牌的 top：中间最高，越靠边越低（低的量 = 半径 × (1 - cos 角度)）
+	const spreadTop = (i: number) => Math.round(FAN_TOP + fanR() * (1 - Math.cos(fanRad(i))));
+	// 【蓝菲修改】第 i 张牌的旋转角：等于它自己的扇形角度，牌就"朝圆心"指
+	const spreadRot = (i: number) => Math.round(fanAngle(i) * 10) / 10;
+	// 【蓝菲修改】容器高度：中间牌顶部 + 扇形落差 + 牌高 + 底部留白
+	const stageH = () => FAN_TOP + fanDrop() + cardH() + 90;
 
 	const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 	const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
@@ -136,11 +159,12 @@
 								const idx = CARDS.indexOf(card);
 								setTimeout(() => {
 									const from = { left: Math.round(cardW / 2), top: CARD_TOP, rot: 0 };
-									const to = { left: spreadLeft(idx), top: CARD_TOP - arcTop(idx), rot: ROTS[idx] };             //终点
+									// 【蓝菲修改】摊开终点改用扇形的 left/top/rot
+									const to = { left: spreadLeft(idx), top: spreadTop(idx), rot: spreadRot(idx) };
 									animate(520, easeOut, (t) => {
 										const arc = Math.sin(Math.PI * t) * 52;
 										poses[card.id].left = from.left + (to.left - from.left) * t;
-										// top 也要从 from 插值到 to（to 里带着 arcTop 弧线），最后再叠加飞行弧线
+										// 【蓝菲修改】top 从 from 插值到 to（to 里是扇形落点），最后再叠加飞行弧线
 										poses[card.id].top = from.top + (to.top - from.top) * t - arc;
 										poses[card.id].rot = to.rot * t;
 										// 飞行途中先弹大一点（SCALE_POP），再回到正常大小
@@ -166,8 +190,8 @@
 			for (let i = 0; i < CARDS.length; i++) {
 				poses[CARDS[i].id] = {
 					left: spreadLeft(i),
-					top: CARD_TOP - arcTop(i),
-					rot: ROTS[i],
+					top: spreadTop(i),
+					rot: spreadRot(i),
 					scale: 1,
 					opacity: 1,
 					z: 10 + i,
@@ -195,8 +219,8 @@
 			if (idx >= 0) {
 				poses[id] = {
 					left: spreadLeft(idx),
-					top: CARD_TOP - arcTop(idx),
-					rot: ROTS[idx],
+					top: spreadTop(idx),
+					rot: spreadRot(idx),
 					scale: 1,
 					opacity: 1,
 					z: 10 + idx,
@@ -215,8 +239,8 @@
 			if (prevIdx >= 0) {
 				poses[selectedId] = {
 					left: spreadLeft(prevIdx),
-					top: CARD_TOP - arcTop(prevIdx),
-					rot: ROTS[prevIdx],
+					top: spreadTop(prevIdx),
+					rot: spreadRot(prevIdx),
 					scale: 1,
 					opacity: 1,
 					z: 10 + prevIdx,
