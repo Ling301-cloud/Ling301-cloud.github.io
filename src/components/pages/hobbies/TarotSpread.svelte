@@ -17,16 +17,21 @@
 		{ id: "music", name: "音乐", src: "/tarot/music.webp", type: "media" },
 	];
 
-	const ROTS = [-7, -4, -1, 1, 4, 7];
-	const CARD_TOP = 64;
+	const ROTS = [-25, -15, -5, 5, 15, 25];
+        const arcTop = (i: number) => {
+                 const t = (i - (CARDS.length - 1) / 2) / ((CARDS.length - 1) / 2);
+    // cos 曲线：中间最高（上移 26px），两端回到 0
+                 return Math.round(Math.cos(t * Math.PI * 0.5) * 20);
+        };
+        const CARD_TOP = 64;
 	const SEL_LEFT = 40;
 	const SEL_SCALE = 1.18;
-	const SEL_ROT = -30;
+	const SEL_ROT = -25;
 
 	// ── 开场动画的缩放大小（想改卡片在各阶段的大小，就改这 4 个数字）──
-	const SCALE_START = 0.4; // ① 渐显开始时：卡片很小
-	const SCALE_FADE = 0.85; // ② 渐显结束 / 停顿中：长得差不多了
-	const SCALE_MOVE = 1.0; // ③ 左移结束时：恢复成正常大小
+	const SCALE_START = 0.4; // ① 渐显开始时：
+	const SCALE_FADE = 0.85; // ② 渐显结束 / 停顿中：
+	const SCALE_MOVE = 1.0; // ③ 左移结束时：
 	const SCALE_POP = 0.15; // ④ 摊开飞行途中额外放大多少（弹一下的效果）
 
 	interface Pos {
@@ -55,7 +60,7 @@
 	let videoUrls = $state<Record<string, string>>({});
 
 	const cardH = () => Math.round(cardW * 2.0);
-	const overlap = () => Math.round(cardW * 0.36);
+	const overlap = () => Math.round(cardW * 0.20);
 	const step = () => cardW - overlap();
 	const spreadW = () => cardW + (CARDS.length - 1) * step();
 	const stageH = () => CARD_TOP + cardH() + 80;
@@ -81,7 +86,7 @@
 		requestAnimationFrame(frame);
 	}
 
-	function runIntro() {
+	function runIntro() {         //展开动画的终点
 		for (let i = 0; i < CARDS.length; i++) {
 			poses[CARDS[i].id] = {
 				left: stackedLeft() + i * 3,
@@ -131,11 +136,12 @@
 								const idx = CARDS.indexOf(card);
 								setTimeout(() => {
 									const from = { left: Math.round(cardW / 2), top: CARD_TOP, rot: 0 };
-									const to = { left: spreadLeft(idx), top: CARD_TOP, rot: ROTS[idx] };
+									const to = { left: spreadLeft(idx), top: CARD_TOP - arcTop(idx), rot: ROTS[idx] };             //终点
 									animate(520, easeOut, (t) => {
 										const arc = Math.sin(Math.PI * t) * 52;
 										poses[card.id].left = from.left + (to.left - from.left) * t;
-										poses[card.id].top = from.top - arc;
+										// top 也要从 from 插值到 to（to 里带着 arcTop 弧线），最后再叠加飞行弧线
+										poses[card.id].top = from.top + (to.top - from.top) * t - arc;
 										poses[card.id].rot = to.rot * t;
 										// 飞行途中先弹大一点（SCALE_POP），再回到正常大小
 										poses[card.id].scale = SCALE_MOVE + Math.sin(Math.PI * t) * SCALE_POP;
@@ -152,7 +158,7 @@
 		);
 	}
 
-	function measure() {
+	function measure() {         //页面就绪后重排
 		if (!stage) return;
 		stageW = stage.clientWidth;
 		cardW = Math.max(96, Math.min(150, Math.round(stageW / 6.2)));
@@ -160,7 +166,7 @@
 			for (let i = 0; i < CARDS.length; i++) {
 				poses[CARDS[i].id] = {
 					left: spreadLeft(i),
-					top: CARD_TOP,
+					top: CARD_TOP - arcTop(i),
 					rot: ROTS[i],
 					scale: 1,
 					opacity: 1,
@@ -180,7 +186,7 @@
 		for (const c of CARDS) if (c.id !== id) poses[c.id].opacity = 0.3;
 	}
 
-	function closeCard() {
+	function closeCard() {              //抽出后复原
 		if (!selectedId) return;
 		const id = selectedId;
 		selectedId = null;
@@ -189,7 +195,7 @@
 			if (idx >= 0) {
 				poses[id] = {
 					left: spreadLeft(idx),
-					top: CARD_TOP,
+					top: CARD_TOP - arcTop(idx),
 					rot: ROTS[idx],
 					scale: 1,
 					opacity: 1,
@@ -200,7 +206,7 @@
 		}, 300);
 	}
 
-	function onCardClick(id: string, e: MouseEvent) {
+	function onCardClick(id: string, e: MouseEvent) {         //切回上一张卡
 		e.stopPropagation();
 		if (phase !== "idle") return;
 		if (selectedId === id) return;
@@ -209,7 +215,7 @@
 			if (prevIdx >= 0) {
 				poses[selectedId] = {
 					left: spreadLeft(prevIdx),
-					top: CARD_TOP,
+					top: CARD_TOP - arcTop(prevIdx),
 					rot: ROTS[prevIdx],
 					scale: 1,
 					opacity: 1,
