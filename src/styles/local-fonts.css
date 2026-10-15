@@ -1,0 +1,117 @@
+/* ════════════════════════════════════════════════════════════════════
+   【蓝菲添加】本地字体样式（不再联网下载）
+   ────────────────────────────────────────────────────────────────────
+   原来字体由 Astro 的 Font API 从 cdn.jsdelivr.net 下载，
+   国内经常连不上，会导致 `pnpm dev` 直接启动失败（CannotFetchFontFile）。
+
+   现在改成：
+     1. 字体文件放在 public/assets/fonts/（构建时会原样复制到站点里）
+     2. 用下面的 @font-face 直接引用它们
+     3. 手动定义原来由 FontSetup.astro 输出的 CSS 变量
+   → 完全不联网，dev / build 都稳定。
+
+   想换字体：把新的 .woff2 放进 public/assets/fonts/，
+   照着下面加一节 @font-face，再改对应变量即可。
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Zen Maru Gothic：主页横幅大标题用（圆润可爱）── */
+@font-face {
+	font-family: "Zen Maru Gothic";
+	font-style: normal;
+	font-weight: 300;
+	font-display: swap;
+	src: url("/assets/fonts/zen-maru-gothic-latin-300-normal.woff2") format("woff2");
+}
+@font-face {
+	font-family: "Zen Maru Gothic";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/assets/fonts/zen-maru-gothic-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+	font-family: "Zen Maru Gothic";
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url("/assets/fonts/zen-maru-gothic-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+	font-family: "Zen Maru Gothic";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("/assets/fonts/zen-maru-gothic-latin-700-normal.woff2") format("woff2");
+}
+
+/* ── Inter：横幅副标题用 ── */
+@font-face {
+	font-family: "Inter";
+	font-style: normal;
+	font-weight: 300;
+	font-display: swap;
+	src: url("/assets/fonts/inter-latin-300-normal.woff2") format("woff2");
+}
+@font-face {
+	font-family: "Inter";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/assets/fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+	font-family: "Inter";
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url("/assets/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+	font-family: "Inter";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("/assets/fonts/inter-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+	font-family: "Inter";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("/assets/fonts/inter-latin-700-normal.woff2") format("woff2");
+}
+
+/* ── JetBrains Mono：代码块 / 行内代码用 ── */
+@font-face {
+	font-family: "JetBrains Mono";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("/assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+	font-family: "JetBrains Mono";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("/assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2");
+}
+
+/* ────────────────────────────────────────────────────────────────────
+   定义 CSS 变量（原来是 FontSetup.astro 输出的）
+   用 `html:root`（比 `:root` 优先级高一点点），
+   确保能覆盖 FontSetup.astro 输出的 --font-code
+   ──────────────────────────────────────────────────────────────────── */
+html:root {
+	/* 字体名 + 兜底字体 */
+	--font-zen-maru-gothic: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", sans-serif;
+	--font-inter: "Inter", system-ui, -apple-system, sans-serif;
+	--font-jetbrains-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+		Monaco, Consolas, monospace;
+
+	/* 各区域字体（banner-home.css / markdown.css / expressive-code.css 会引用） */
+	--font-banner-title: var(--font-zen-maru-gothic, inherit);
+	--font-banner-subtitle: var(--font-inter, inherit);
+	--font-code: var(--font-jetbrains-mono, ui-monospace, SFMono-Regular, Menlo,
+		Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+}

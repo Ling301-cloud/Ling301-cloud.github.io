@@ -354,7 +354,13 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		server: {
 			watch: {
-				ignored: ["**/package/**", "**/Firefly-docs/**"],
+				// 【蓝菲修改】额外忽略 .astro 缓存目录。
+				// 原因：Windows 上文件监听器（chokidar）偶尔会对已被删过的缓存文件
+				// 发出"幽灵 unlink"事件，Astro 收到后误判为
+				// "Configuration file removed" → dev server 反复重启
+				// → 重启时内容缓存被写空 → 页面报 "content not found"。
+				// .astro 只是生成出来的缓存，不需要被监听，忽略它就彻底解决了。
+				ignored: ["**/package/**", "**/Firefly-docs/**", "**/.astro/**"],
 			},
 		},
 		resolve: {

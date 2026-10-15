@@ -85,8 +85,13 @@ export const fontsList: FontDefinition[] = [
 
 // ─── 字体选择与区域覆盖 ─────────────────────────────────────
 export const fontConfig: FontSelectionConfig = {
-	// 是否启用自定义字体功能
-	enable: true,
+	// 【蓝菲修改】这里改成 false：关闭 Astro 自带的字体 API。
+	//   原因：它会在启动时去 cdn.jsdelivr.net 联网下载字体，
+	//   国内经常连不上 → `pnpm dev` 会直接启动失败（CannotFetchFontFile）。
+	//   现在字体改由 src/styles/local-fonts.css 用 @font-face 直接引用
+	//   public/assets/fonts/ 里的本地文件，完全不联网、启动更快更稳。
+	//   （想恢复官方方式：把这行改回 true 即可，但需要能访问 jsdelivr）
+	enable: false,
 	// 当前选择的字体 CSS 变量名（对应上方 fonts 中的 cssVariable）
 	// 使用 "system" 表示系统字体（不加载任何自定义字体）
 	selected: ["system"],

@@ -40,7 +40,7 @@
 	const SCALE_START = 0.4; // ① 渐显开始时：
 	const SCALE_FADE = 0.85; // ② 渐显结束 / 停顿中：
 	const SCALE_MOVE = 1.0; // ③ 左移结束时：
-	const SCALE_POP = 0.15; // ④ 摊开飞行途中额外放大多少（弹一下的效果）
+	const SCALE_POP = 0.3; // ④ 摊开飞行途中额外放大多少（弹一下的效果）
 
 	interface Pos {
 		left: number;
