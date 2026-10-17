@@ -360,7 +360,14 @@ export default defineConfig({
 				// "Configuration file removed" → dev server 反复重启
 				// → 重启时内容缓存被写空 → 页面报 "content not found"。
 				// .astro 只是生成出来的缓存，不需要被监听，忽略它就彻底解决了。
-				ignored: ["**/package/**", "**/Firefly-docs/**", "**/.astro/**"],
+				ignored: [
+					"**/.astro/**",
+					"**/node_modules/**",
+					"**/.git/**",
+					"**/dist/**",
+					"**/package/**",
+					"**/Firefly-docs/**",
+				],
 			},
 		},
 		resolve: {
